@@ -257,7 +257,7 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
             <polyline points="9 22 9 12 15 12 15 22"></polyline>
           </svg>
-          <h2 style="margin: 0; font-size: 28px; color: #1f2937; font-weight: 700;">Home Layout Design</h2>
+          <h2 style="margin: 0; font-size: 28px; color: #1f2937; font-weight: 700;">RAB's 🏠</h2>
         </div>
         <p style="margin: 0; font-size: 14px; color: #6b7280;">
           Plot Size: ${project.plotWidth} × ${project.plotHeight} ${project.unit} | 
@@ -280,7 +280,7 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
       footer.style.textAlign = 'center';
       footer.style.fontSize = '12px';
       footer.style.color = '#9ca3af';
-      footer.textContent = `Created with Home Layout Designer | ${new Date().toLocaleDateString()}`;
+      footer.textContent = `Created with RAB's 🏠 | ${new Date().toLocaleDateString()}`;
       wrapper.appendChild(footer);
       
       // Temporarily add to document
