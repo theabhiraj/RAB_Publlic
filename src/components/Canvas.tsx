@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { ZoomIn, ZoomOut, Home, Square, Download, Menu, X, Settings } from 'lucide-react';
+import { ZoomIn, ZoomOut, Home, Square, Download, Menu, X } from 'lucide-react';
 import { Project, Room, Element } from '../types';
 import RoomPalette from './RoomPalette';
 import ElementPalette from './ElementPalette';
@@ -46,7 +46,6 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [showPalette, setShowPalette] = useState(false);
-  const [showProperties, setShowProperties] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
   const [showTutorial, setShowTutorial] = useState(false);
@@ -721,7 +720,7 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
   return (
     <div className="h-screen flex flex-col">
       {/* Header */}
-      <div className="bg-white border-b px-2 sm:px-4 py-2 sm:py-3 flex items-center justify-between">
+      <div className="bg-white border-b px-2 sm:px-4 py-2 sm:py-3 flex items-center justify-between gap-2">
         <div className="flex-1 min-w-0">
           <h1 className="text-lg sm:text-xl font-bold truncate">RAB's 🏠</h1>
           <p className="text-xs sm:text-sm text-gray-600 truncate">
@@ -730,30 +729,65 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
             Area: {totalArea.toFixed(1)} sq ft
           </p>
         </div>
-        <div className="flex gap-1 sm:gap-2 items-center">
-          {/* Mobile Palette Toggle */}
+
+        {/* Mobile Add Items Dropdown */}
+        <div className="lg:hidden relative">
           <button
-            onClick={() => {
-              setShowPalette(!showPalette);
-              setShowProperties(false);
-            }}
-            className="lg:hidden p-2 hover:bg-gray-100 rounded transition-colors"
+            onClick={() => setShowPalette(!showPalette)}
+            className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-1 text-sm font-medium transition-colors"
             title="Add Items"
           >
-            <Menu className="w-5 h-5" />
+            <Menu className="w-4 h-4" />
+            <span>Add</span>
           </button>
           
-          {/* Mobile Properties Toggle */}
-          <button
-            onClick={() => {
-              setShowProperties(!showProperties);
-              setShowPalette(false);
-            }}
-            className="lg:hidden p-2 hover:bg-gray-100 rounded transition-colors"
-            title="Properties"
-          >
-            <Settings className="w-5 h-5" />
-          </button>
+          {showPalette && (
+            <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-[70vh] overflow-y-auto">
+              <div className="sticky top-0 bg-white border-b z-10">
+                <div className="flex items-center justify-between p-3">
+                  <h3 className="font-bold text-sm">Add Items</h3>
+                  <button onClick={() => setShowPalette(false)} className="p-1 hover:bg-gray-100 rounded">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="flex border-b">
+                  <button
+                    onClick={() => setActiveTab('rooms')}
+                    className={`flex-1 px-3 py-2 text-sm font-medium ${
+                      activeTab === 'rooms' ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600' : 'text-gray-600'
+                    }`}
+                  >
+                    Rooms
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('elements')}
+                    className={`flex-1 px-3 py-2 text-sm font-medium ${
+                      activeTab === 'elements' ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600' : 'text-gray-600'
+                    }`}
+                  >
+                    Elements
+                  </button>
+                </div>
+              </div>
+              
+              <div className="p-2">
+                {activeTab === 'rooms' ? (
+                  <RoomPalette roomTypes={ROOM_TYPES} onAddRoom={(type, color, icon) => {
+                    addRoom(type, color, icon);
+                    setShowPalette(false);
+                  }} />
+                ) : (
+                  <ElementPalette onAddElement={(element) => {
+                    addElement(element);
+                    setShowPalette(false);
+                  }} />
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+        
+        <div className="hidden lg:flex gap-1 sm:gap-2 items-center">
           
           <button
             onClick={() => handleZoom(-0.25)}
@@ -832,7 +866,7 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
       <Toolbar activeTool={activeTool} onToolChange={setActiveTool} />
 
       <div className="flex-1 flex overflow-hidden relative">
-        {/* Sidebar - Desktop */}
+        {/* Sidebar - Desktop Only */}
         <div className="hidden lg:flex w-72 bg-white border-r flex-col overflow-hidden">
           <div className="flex border-b">
             <button
@@ -868,65 +902,6 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
           </div>
         </div>
 
-        {/* Mobile Palette Overlay */}
-        {showPalette && (
-          <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40 animate-fade-in" onClick={() => setShowPalette(false)}>
-            <div 
-              className="absolute left-0 top-0 bottom-0 w-80 max-w-[85vw] bg-white shadow-xl flex flex-col animate-slide-in-left"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-blue-50 to-white">
-                <h2 className="font-bold text-lg flex items-center gap-2">
-                  <span className="text-2xl">➕</span>
-                  Add Items
-                </h2>
-                <button onClick={() => setShowPalette(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-              
-              <div className="flex border-b">
-                <button
-                  onClick={() => setActiveTab('rooms')}
-                  className={`flex-1 px-4 py-3 font-medium ${
-                    activeTab === 'rooms' ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600' : 'text-gray-600'
-                  }`}
-                >
-                  Rooms
-                </button>
-                <button
-                  onClick={() => setActiveTab('elements')}
-                  className={`flex-1 px-4 py-3 font-medium ${
-                    activeTab === 'elements' ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600' : 'text-gray-600'
-                  }`}
-                >
-                  Elements
-                </button>
-              </div>
-
-              <div className="flex-1 overflow-y-auto p-4">
-                {activeTab === 'rooms' ? (
-                  <>
-                    <h2 className="font-bold mb-3">Add Rooms</h2>
-                    <RoomPalette roomTypes={ROOM_TYPES} onAddRoom={(type, color, icon) => {
-                      addRoom(type, color, icon);
-                      setShowPalette(false);
-                    }} />
-                  </>
-                ) : (
-                  <>
-                    <h2 className="font-bold mb-3">Add Elements</h2>
-                    <ElementPalette onAddElement={(element) => {
-                      addElement(element);
-                      setShowPalette(false);
-                    }} />
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Canvas */}
         <div
           ref={canvasRef}
@@ -961,39 +936,39 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
             e.currentTarget.dispatchEvent(mouseEvent);
           }}
         >
-          {/* Mobile Quick Actions - Enhanced FAB */}
-          <div className="lg:hidden fixed bottom-4 right-4 flex flex-col gap-3 z-30">
+          {/* Mobile Quick Actions - Compact FAB */}
+          <div className="lg:hidden fixed bottom-4 left-4 flex gap-2 z-30">
             <button
               onClick={() => handleZoom(0.25)}
-              className="fab-button p-4 bg-white rounded-full hover:bg-blue-50 active:bg-blue-100 transition-all"
+              className="fab-button p-3 bg-white rounded-full hover:bg-blue-50 active:bg-blue-100 transition-all shadow-lg"
               title="Zoom In"
             >
-              <ZoomIn className="w-6 h-6 text-blue-600" />
+              <ZoomIn className="w-5 h-5 text-blue-600" />
             </button>
             <button
               onClick={() => handleZoom(-0.25)}
-              className="fab-button p-4 bg-white rounded-full hover:bg-blue-50 active:bg-blue-100 transition-all"
+              className="fab-button p-3 bg-white rounded-full hover:bg-blue-50 active:bg-blue-100 transition-all shadow-lg"
               title="Zoom Out"
             >
-              <ZoomOut className="w-6 h-6 text-blue-600" />
+              <ZoomOut className="w-5 h-5 text-blue-600" />
             </button>
             <button
               onClick={resetView}
-              className="fab-button p-4 bg-white rounded-full hover:bg-green-50 active:bg-green-100 transition-all"
+              className="fab-button p-3 bg-white rounded-full hover:bg-green-50 active:bg-green-100 transition-all shadow-lg"
               title="Reset View"
             >
-              <Home className="w-6 h-6 text-green-600" />
+              <Home className="w-5 h-5 text-green-600" />
             </button>
             <button
               onClick={toggleBorder}
-              className={`fab-button p-4 rounded-full transition-all ${
+              className={`fab-button p-3 rounded-full transition-all shadow-lg ${
                 project.hasBorder 
                   ? 'bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700' 
                   : 'bg-white text-gray-600 hover:bg-gray-50 active:bg-gray-100'
               }`}
               title="Toggle Border"
             >
-              <Square className="w-6 h-6" />
+              <Square className="w-5 h-5" />
             </button>
           </div>
           <div
@@ -1188,8 +1163,8 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
           </div>
         </div>
 
-        {/* Properties Panel - Desktop */}
-        <div className="hidden lg:block">
+        {/* Properties Panel - Always Visible (25% on mobile, fixed width on desktop) */}
+        <div className="w-1/4 min-w-[200px] max-w-[320px] lg:w-80 bg-white border-l overflow-y-auto">
           <PropertiesPanel
             selectedRoom={selectedRoom ? project.rooms.find(r => r.id === selectedRoom) || null : null}
             selectedElement={selectedElement ? project.elements.find(e => e.id === selectedElement) || null : null}
@@ -1203,41 +1178,6 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
             calculateArea={calculateArea}
           />
         </div>
-
-        {/* Mobile Properties Overlay */}
-        {showProperties && (
-          <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40" onClick={() => setShowProperties(false)}>
-            <div 
-              className="absolute right-0 top-0 bottom-0 w-80 max-w-[85vw] bg-white shadow-xl overflow-y-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between p-4 border-b sticky top-0 bg-white z-10">
-                <h2 className="font-bold text-lg">Properties</h2>
-                <button onClick={() => setShowProperties(false)} className="p-2 hover:bg-gray-100 rounded">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-              <PropertiesPanel
-                selectedRoom={selectedRoom ? project.rooms.find(r => r.id === selectedRoom) || null : null}
-                selectedElement={selectedElement ? project.elements.find(e => e.id === selectedElement) || null : null}
-                onUpdateRoom={updateRoom}
-                onUpdateElement={updateElement}
-                onDeleteRoom={() => {
-                  selectedRoom && deleteRoom(selectedRoom);
-                  setShowProperties(false);
-                }}
-                onDeleteElement={() => {
-                  selectedElement && deleteElement(selectedElement);
-                  setShowProperties(false);
-                }}
-                onRotateElement={() => selectedElement && rotateElement(selectedElement)}
-                onDuplicateRoom={() => selectedRoom && duplicateRoom(selectedRoom)}
-                onDuplicateElement={() => selectedElement && duplicateElement(selectedElement)}
-                calculateArea={calculateArea}
-              />
-            </div>
-          </div>
-        )}
 
         {/* Toast Notifications */}
         {toast && (

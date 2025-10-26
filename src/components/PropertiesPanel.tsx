@@ -28,11 +28,11 @@ export default function PropertiesPanel({
 }: PropertiesPanelProps) {
   if (!selectedRoom && !selectedElement) {
     return (
-      <div className="w-full lg:w-80 bg-white lg:border-l p-6 flex items-center justify-center min-h-[200px]">
+      <div className="w-full bg-white p-4 flex items-center justify-center">
         <div className="text-center text-gray-400">
-          <Move className="w-12 h-12 mx-auto mb-3 opacity-50" />
-          <p className="text-sm">Select a room or element</p>
-          <p className="text-xs mt-1">to view properties</p>
+          <Move className="w-8 h-8 lg:w-12 lg:h-12 mx-auto mb-2 opacity-50" />
+          <p className="text-xs lg:text-sm">Select item</p>
+          <p className="text-xs mt-1 hidden lg:block">to view properties</p>
         </div>
       </div>
     );
@@ -40,30 +40,31 @@ export default function PropertiesPanel({
 
   if (selectedRoom) {
     return (
-      <div className="w-full lg:w-80 bg-white lg:border-l overflow-y-auto">
-        <div className="p-4 border-b bg-blue-50 lg:block hidden">
-          <h2 className="font-bold text-lg flex items-center gap-2">
-            <span className="text-2xl">{selectedRoom.icon}</span>
-            Room Properties
+      <div className="w-full bg-white overflow-y-auto">
+        <div className="p-2 lg:p-4 border-b bg-blue-50">
+          <h2 className="font-bold text-sm lg:text-lg flex items-center gap-1 lg:gap-2">
+            <span className="text-lg lg:text-2xl">{selectedRoom.icon}</span>
+            <span className="hidden lg:inline">Room Properties</span>
+            <span className="lg:hidden">Room</span>
           </h2>
         </div>
 
-        <div className="p-4 space-y-4">
+        <div className="p-2 lg:p-4 space-y-2 lg:space-y-4">
           {/* Room Type */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Room Type
+            <label className="block text-xs lg:text-sm font-medium text-gray-700 mb-1">
+              Type
             </label>
             <input
               type="text"
               value={selectedRoom.type}
               onChange={(e) => onUpdateRoom({ ...selectedRoom, type: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-2 lg:px-3 py-1.5 lg:py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
-          {/* Position */}
-          <div className="grid grid-cols-2 gap-3">
+          {/* Position - Hidden on mobile, shown on desktop */}
+          <div className="hidden lg:grid grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 X Position
@@ -240,20 +241,22 @@ export default function PropertiesPanel({
           </div>
 
           {/* Actions */}
-          <div className="pt-4 border-t space-y-2">
+          <div className="pt-2 lg:pt-4 border-t space-y-1.5 lg:space-y-2">
             <button
               onClick={onDuplicateRoom}
-              className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 font-medium"
+              className="w-full px-2 lg:px-4 py-2 lg:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-1 lg:gap-2 font-medium text-sm"
             >
-              <Copy className="w-5 h-5" />
-              Duplicate Room
+              <Copy className="w-4 h-4 lg:w-5 lg:h-5" />
+              <span className="hidden lg:inline">Duplicate Room</span>
+              <span className="lg:hidden">Duplicate</span>
             </button>
             <button
               onClick={onDeleteRoom}
-              className="w-full px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center justify-center gap-2 font-medium"
+              className="w-full px-2 lg:px-4 py-2 lg:py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center justify-center gap-1 lg:gap-2 font-medium text-sm"
             >
-              <Trash2 className="w-5 h-5" />
-              Delete Room
+              <Trash2 className="w-4 h-4 lg:w-5 lg:h-5" />
+              <span className="hidden lg:inline">Delete Room</span>
+              <span className="lg:hidden">Delete</span>
             </button>
           </div>
         </div>
@@ -263,15 +266,16 @@ export default function PropertiesPanel({
 
   if (selectedElement) {
     return (
-      <div className="w-full lg:w-80 bg-white lg:border-l overflow-y-auto">
-        <div className="p-4 border-b bg-purple-50 lg:block hidden">
-          <h2 className="font-bold text-lg flex items-center gap-2">
-            <span className="text-2xl">{selectedElement.icon}</span>
-            Element Properties
+      <div className="w-full bg-white overflow-y-auto">
+        <div className="p-2 lg:p-4 border-b bg-purple-50">
+          <h2 className="font-bold text-sm lg:text-lg flex items-center gap-1 lg:gap-2">
+            <span className="text-lg lg:text-2xl">{selectedElement.icon}</span>
+            <span className="hidden lg:inline">Element Properties</span>
+            <span className="lg:hidden">Element</span>
           </h2>
         </div>
 
-        <div className="p-4 space-y-4">
+        <div className="p-2 lg:p-4 space-y-2 lg:space-y-4">
           {/* Element Type */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -471,27 +475,30 @@ export default function PropertiesPanel({
           </div>
 
           {/* Quick Actions */}
-          <div className="pt-4 border-t space-y-2">
+          <div className="pt-2 lg:pt-4 border-t space-y-1.5 lg:space-y-2">
             <button
               onClick={onRotateElement}
-              className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 font-medium"
+              className="w-full px-2 lg:px-4 py-2 lg:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-1 lg:gap-2 font-medium text-sm"
             >
-              <RotateCw className="w-5 h-5" />
-              Rotate 90°
+              <RotateCw className="w-4 h-4 lg:w-5 lg:h-5" />
+              <span className="hidden lg:inline">Rotate 90°</span>
+              <span className="lg:hidden">Rotate</span>
             </button>
             <button
               onClick={onDuplicateElement}
-              className="w-full px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center justify-center gap-2 font-medium"
+              className="w-full px-2 lg:px-4 py-2 lg:py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center justify-center gap-1 lg:gap-2 font-medium text-sm"
             >
-              <Copy className="w-5 h-5" />
-              Duplicate Element
+              <Copy className="w-4 h-4 lg:w-5 lg:h-5" />
+              <span className="hidden lg:inline">Duplicate Element</span>
+              <span className="lg:hidden">Duplicate</span>
             </button>
             <button
               onClick={onDeleteElement}
-              className="w-full px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center justify-center gap-2 font-medium"
+              className="w-full px-2 lg:px-4 py-2 lg:py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center justify-center gap-1 lg:gap-2 font-medium text-sm"
             >
-              <Trash2 className="w-5 h-5" />
-              Delete Element
+              <Trash2 className="w-4 h-4 lg:w-5 lg:h-5" />
+              <span className="hidden lg:inline">Delete Element</span>
+              <span className="lg:hidden">Delete</span>
             </button>
           </div>
         </div>
