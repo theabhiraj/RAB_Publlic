@@ -13,6 +13,10 @@ A React TypeScript web app for designing home layouts with an intuitive drag-and
 - 🎨 Modern UI with Tailwind CSS
 - 📱 **Fully responsive & mobile-friendly**
 - 👆 **Touch-optimized for phones & tablets**
+- 🔔 **Toast notifications for instant feedback**
+- 📚 **Interactive tutorial for first-time users**
+- ✨ **Smooth animations & transitions**
+- 🎯 **Enhanced floating action buttons**
 - 🔌 Offline-friendly
 - 📸 Export as PNG or JPG image
 
