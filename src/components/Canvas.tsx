@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { ZoomIn, ZoomOut, Home, Download, Menu, X } from 'lucide-react';
+import { ZoomIn, ZoomOut, Home, Download, Plus, X } from 'lucide-react';
 import { Project, Room, Element } from '../types';
 import RoomPalette from './RoomPalette';
 import ElementPalette from './ElementPalette';
@@ -728,16 +728,17 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
           </p>
         </div>
 
-        {/* Mobile Add Items Dropdown */}
-        <div className="lg:hidden relative">
-          <button
-            onClick={() => setShowPalette(!showPalette)}
-            className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-1 text-sm font-medium transition-colors"
-            title="Add Items"
-          >
-            <Menu className="w-4 h-4" />
-            <span>Add</span>
-          </button>
+        {/* Mobile Controls */}
+        <div className="lg:hidden flex items-center gap-2">
+          {/* Add Items Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setShowPalette(!showPalette)}
+              className="w-10 h-10 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center transition-colors shadow-md"
+              title="Add Items"
+            >
+              <Plus className="w-6 h-6" />
+            </button>
           
           {showPalette && (
             <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-[70vh] overflow-y-auto">
@@ -783,6 +784,53 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
               </div>
             </div>
           )}
+          </div>
+
+          {/* Export Button */}
+          <div className="relative export-menu-container">
+            <button
+              onClick={() => setShowExportMenu(!showExportMenu)}
+              disabled={isExporting}
+              className="w-10 h-10 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center disabled:opacity-50 transition-colors shadow-md"
+              title="Export"
+            >
+              <Download className="w-5 h-5" />
+            </button>
+            
+            {showExportMenu && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
+                <button
+                  onClick={handleExportPNG}
+                  className="w-full px-4 py-3 text-left hover:bg-gray-100 rounded-t-lg flex items-center gap-2 border-b border-gray-100"
+                >
+                  <Download className="w-4 h-4" />
+                  <div>
+                    <div className="font-medium text-sm">PNG</div>
+                    <div className="text-xs text-gray-500">High quality</div>
+                  </div>
+                </button>
+                <button
+                  onClick={handleExportJPG}
+                  className="w-full px-4 py-3 text-left hover:bg-gray-100 rounded-b-lg flex items-center gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  <div>
+                    <div className="font-medium text-sm">JPG</div>
+                    <div className="text-xs text-gray-500">Smaller size</div>
+                  </div>
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* New Project Button */}
+          <button
+            onClick={onReset}
+            className="w-10 h-10 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center justify-center font-bold text-lg transition-colors shadow-md"
+            title="New Project"
+          >
+            N
+          </button>
         </div>
         
         <div className="hidden lg:flex gap-1 sm:gap-2 items-center">
@@ -996,13 +1044,15 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
                 }}
                 onMouseDown={(e) => handleRoomMouseDown(e, room.id, 'drag')}
                 onTouchStart={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   const touch = e.touches[0];
-                  const mouseEvent = new MouseEvent('mousedown', {
+                  handleRoomMouseDown({
                     clientX: touch.clientX,
                     clientY: touch.clientY,
-                    bubbles: true
-                  });
-                  e.currentTarget.dispatchEvent(mouseEvent);
+                    stopPropagation: () => {},
+                    preventDefault: () => {},
+                  } as any, room.id, 'drag');
                 }}
               >
                 <div className="text-3xl mb-1">{room.icon}</div>
@@ -1024,26 +1074,29 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
                         key={corner}
                         style={{
                           position: 'absolute',
-                          width: window.innerWidth < 640 ? '20px' : '12px',
-                          height: window.innerWidth < 640 ? '20px' : '12px',
+                          width: window.innerWidth < 1024 ? '32px' : '12px',
+                          height: window.innerWidth < 1024 ? '32px' : '12px',
                           backgroundColor: '#2563eb',
-                          border: '2px solid white',
+                          border: '3px solid white',
                           borderRadius: '50%',
                           cursor: `${corner}-resize`,
-                          ...(corner.includes('n') ? { top: window.innerWidth < 640 ? '-10px' : '-6px' } : { bottom: window.innerWidth < 640 ? '-10px' : '-6px' }),
-                          ...(corner.includes('w') ? { left: window.innerWidth < 640 ? '-10px' : '-6px' } : { right: window.innerWidth < 640 ? '-10px' : '-6px' }),
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                          ...(corner.includes('n') ? { top: window.innerWidth < 1024 ? '-16px' : '-6px' } : { bottom: window.innerWidth < 1024 ? '-16px' : '-6px' }),
+                          ...(corner.includes('w') ? { left: window.innerWidth < 1024 ? '-16px' : '-6px' } : { right: window.innerWidth < 1024 ? '-16px' : '-6px' }),
                           touchAction: 'none',
+                          zIndex: 10,
                         }}
                         onMouseDown={(e) => handleRoomMouseDown(e, room.id, 'resize', corner)}
                         onTouchStart={(e) => {
                           e.preventDefault();
+                          e.stopPropagation();
                           const touch = e.touches[0];
-                          const mouseEvent = new MouseEvent('mousedown', {
+                          handleRoomMouseDown({
                             clientX: touch.clientX,
                             clientY: touch.clientY,
-                            bubbles: true
-                          });
-                          e.currentTarget.dispatchEvent(mouseEvent);
+                            stopPropagation: () => {},
+                            preventDefault: () => {},
+                          } as any, room.id, 'resize', corner);
                         }}
                       />
                     ))}
@@ -1077,13 +1130,15 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
                 }}
                 onMouseDown={(e) => handleElementMouseDown(e, element.id, 'drag')}
                 onTouchStart={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   const touch = e.touches[0];
-                  const mouseEvent = new MouseEvent('mousedown', {
+                  handleElementMouseDown({
                     clientX: touch.clientX,
                     clientY: touch.clientY,
-                    bubbles: true
-                  });
-                  e.currentTarget.dispatchEvent(mouseEvent);
+                    stopPropagation: () => {},
+                    preventDefault: () => {},
+                  } as any, element.id, 'drag');
                 }}
               >
                 {element.type === 'stairs' ? (
@@ -1114,26 +1169,29 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
                     <div
                       style={{
                         position: 'absolute',
-                        width: window.innerWidth < 640 ? '20px' : '10px',
-                        height: window.innerWidth < 640 ? '20px' : '10px',
+                        width: window.innerWidth < 1024 ? '32px' : '10px',
+                        height: window.innerWidth < 1024 ? '32px' : '10px',
                         backgroundColor: '#2563eb',
-                        border: '2px solid white',
+                        border: '3px solid white',
                         borderRadius: '50%',
                         cursor: 'se-resize',
-                        bottom: window.innerWidth < 640 ? '-10px' : '-5px',
-                        right: window.innerWidth < 640 ? '-10px' : '-5px',
+                        bottom: window.innerWidth < 1024 ? '-16px' : '-5px',
+                        right: window.innerWidth < 1024 ? '-16px' : '-5px',
                         touchAction: 'none',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                        zIndex: 10,
                       }}
                       onMouseDown={(e) => handleElementMouseDown(e, element.id, 'resize', 'se')}
                       onTouchStart={(e) => {
                         e.preventDefault();
+                        e.stopPropagation();
                         const touch = e.touches[0];
-                        const mouseEvent = new MouseEvent('mousedown', {
+                        handleElementMouseDown({
                           clientX: touch.clientX,
                           clientY: touch.clientY,
-                          bubbles: true
-                        });
-                        e.currentTarget.dispatchEvent(mouseEvent);
+                          stopPropagation: () => {},
+                          preventDefault: () => {},
+                        } as any, element.id, 'resize', 'se');
                       }}
                     />
                   </>
