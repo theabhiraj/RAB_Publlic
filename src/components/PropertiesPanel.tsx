@@ -28,7 +28,7 @@ export default function PropertiesPanel({
 }: PropertiesPanelProps) {
   if (!selectedRoom && !selectedElement) {
     return (
-      <div className="w-80 bg-white border-l p-6 flex items-center justify-center">
+      <div className="w-full lg:w-80 bg-white lg:border-l p-6 flex items-center justify-center min-h-[200px]">
         <div className="text-center text-gray-400">
           <Move className="w-12 h-12 mx-auto mb-3 opacity-50" />
           <p className="text-sm">Select a room or element</p>
@@ -40,8 +40,8 @@ export default function PropertiesPanel({
 
   if (selectedRoom) {
     return (
-      <div className="w-80 bg-white border-l overflow-y-auto">
-        <div className="p-4 border-b bg-blue-50">
+      <div className="w-full lg:w-80 bg-white lg:border-l overflow-y-auto">
+        <div className="p-4 border-b bg-blue-50 lg:block hidden">
           <h2 className="font-bold text-lg flex items-center gap-2">
             <span className="text-2xl">{selectedRoom.icon}</span>
             Room Properties
@@ -263,8 +263,8 @@ export default function PropertiesPanel({
 
   if (selectedElement) {
     return (
-      <div className="w-80 bg-white border-l overflow-y-auto">
-        <div className="p-4 border-b bg-purple-50">
+      <div className="w-full lg:w-80 bg-white lg:border-l overflow-y-auto">
+        <div className="p-4 border-b bg-purple-50 lg:block hidden">
           <h2 className="font-bold text-lg flex items-center gap-2">
             <span className="text-2xl">{selectedElement.icon}</span>
             Element Properties

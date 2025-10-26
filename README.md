@@ -11,7 +11,8 @@ A React TypeScript web app for designing home layouts with an intuitive drag-and
 - 📊 Real-time area calculation
 - 💾 Save/load projects (localStorage)
 - 🎨 Modern UI with Tailwind CSS
-- 📱 Fully responsive
+- 📱 **Fully responsive & mobile-friendly**
+- 👆 **Touch-optimized for phones & tablets**
 - 🔌 Offline-friendly
 - 📸 Export as PNG or JPG image
 
@@ -50,6 +51,7 @@ npm run build
 
 ## Controls
 
+### Desktop
 - **Pan**: Click and drag on empty canvas area (in Select mode)
 - **Zoom**: Use zoom buttons in header
 - **Select Item**: Click on any room or element
@@ -60,6 +62,18 @@ npm run build
 - **Duplicate**: Click Duplicate button in Properties Panel or press Ctrl+D (Cmd+D on Mac)
 - **Edit Properties**: Select item to view/edit in right Properties Panel
 - **Export Image**: Click Export button in header, choose PNG or JPG format
+
+### Mobile & Tablet
+- **Add Items**: Tap menu icon (☰) to open palette
+- **Edit Properties**: Tap settings icon (⚙️) to open properties panel
+- **Move Item**: Tap and drag any room or element
+- **Resize**: Drag the blue circular handles (larger on mobile)
+- **Zoom**: Use floating action buttons (bottom-right)
+- **Pan**: Two-finger drag on canvas
+- **Select**: Single tap on any item
+- **Deselect**: Tap empty canvas area
+
+See [MOBILE_FEATURES.md](MOBILE_FEATURES.md) for detailed mobile usage guide.
 
 ## Features
 

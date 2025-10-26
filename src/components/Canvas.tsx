@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { ZoomIn, ZoomOut, Home, Square, Download } from 'lucide-react';
+import { ZoomIn, ZoomOut, Home, Square, Download, Menu, X, Settings } from 'lucide-react';
 import { Project, Room, Element } from '../types';
 import RoomPalette from './RoomPalette';
 import ElementPalette from './ElementPalette';
@@ -8,6 +8,7 @@ import PropertiesPanel from './PropertiesPanel';
 import StairsElement from './StairsElement';
 import DoorElement from './DoorElement';
 import WindowElement from './WindowElement';
+import Toast, { ToastType } from './Toast';
 import { exportCanvasAsImage, exportCanvasAsJPG } from '../utils/exportImage';
 
 interface CanvasProps {
@@ -43,8 +44,27 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
   const [activeTab, setActiveTab] = useState<'rooms' | 'elements'>('rooms');
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [showPalette, setShowPalette] = useState(false);
+  const [showProperties, setShowProperties] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const plotRef = useRef<HTMLDivElement>(null);
+
+  const showToast = (message: string, type: ToastType = 'success') => {
+    setToast({ message, type });
+  };
+
+  // Detect mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const snapToGrid = (value: number) => Math.round(value / GRID_SIZE) * GRID_SIZE;
 
@@ -164,6 +184,7 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
       opacity: 0.85,
     };
     onUpdate({ ...project, rooms: [...project.rooms, newRoom] });
+    if (isMobile) showToast(`${icon} ${type} added!`, 'success');
   };
 
   const addElement = (elementType: any) => {
@@ -184,16 +205,21 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
       opacity: 1,
     };
     onUpdate({ ...project, elements: [...project.elements, newElement] });
+    if (isMobile) showToast(`${elementType.icon} ${elementType.label} added!`, 'success');
   };
 
   const deleteRoom = (id: string) => {
+    const room = project.rooms.find(r => r.id === id);
     onUpdate({ ...project, rooms: project.rooms.filter(r => r.id !== id) });
     setSelectedRoom(null);
+    if (isMobile && room) showToast(`${room.icon} ${room.type} deleted`, 'info');
   };
 
   const deleteElement = (id: string) => {
+    const element = project.elements.find(e => e.id === id);
     onUpdate({ ...project, elements: project.elements.filter(e => e.id !== id) });
     setSelectedElement(null);
+    if (isMobile && element) showToast(`${element.icon} Element deleted`, 'info');
   };
 
   const rotateElement = (id: string) => {
@@ -258,6 +284,7 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
 
     onUpdate({ ...project, rooms: [...project.rooms, duplicatedRoom] });
     setSelectedRoom(duplicatedRoom.id);
+    if (isMobile) showToast(`${room.icon} ${room.type} duplicated!`, 'success');
   };
 
   const duplicateElement = (elementId: string) => {
@@ -279,6 +306,7 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
 
     onUpdate({ ...project, elements: [...project.elements, duplicatedElement] });
     setSelectedElement(duplicatedElement.id);
+    if (isMobile) showToast(`${element.icon} Element duplicated!`, 'success');
   };
 
   const handleExportPNG = async () => {
@@ -669,38 +697,64 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
   return (
     <div className="h-screen flex flex-col">
       {/* Header */}
-      <div className="bg-white border-b px-4 py-3 flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold">RAB's 🏠</h1>
-          <p className="text-sm text-gray-600">
-            Plot: {project.plotWidth} × {project.plotHeight} {project.unit} | Total Area: {totalArea.toFixed(1)} sq ft
+      <div className="bg-white border-b px-2 sm:px-4 py-2 sm:py-3 flex items-center justify-between">
+        <div className="flex-1 min-w-0">
+          <h1 className="text-lg sm:text-xl font-bold truncate">RAB's 🏠</h1>
+          <p className="text-xs sm:text-sm text-gray-600 truncate">
+            <span className="hidden sm:inline">Plot: {project.plotWidth} × {project.plotHeight} {project.unit} | </span>
+            <span className="sm:hidden">{project.plotWidth}×{project.plotHeight} {project.unit} | </span>
+            Area: {totalArea.toFixed(1)} sq ft
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-1 sm:gap-2 items-center">
+          {/* Mobile Palette Toggle */}
+          <button
+            onClick={() => {
+              setShowPalette(!showPalette);
+              setShowProperties(false);
+            }}
+            className="lg:hidden p-2 hover:bg-gray-100 rounded"
+            title="Toggle Palette"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          
+          {/* Mobile Properties Toggle */}
+          <button
+            onClick={() => {
+              setShowProperties(!showProperties);
+              setShowPalette(false);
+            }}
+            className="lg:hidden p-2 hover:bg-gray-100 rounded"
+            title="Toggle Properties"
+          >
+            <Settings className="w-5 h-5" />
+          </button>
+          
           <button
             onClick={() => handleZoom(-0.25)}
-            className="p-2 hover:bg-gray-100 rounded"
+            className="p-2 hover:bg-gray-100 rounded hidden sm:block"
             title="Zoom Out"
           >
             <ZoomOut className="w-5 h-5" />
           </button>
           <button
             onClick={() => handleZoom(0.25)}
-            className="p-2 hover:bg-gray-100 rounded"
+            className="p-2 hover:bg-gray-100 rounded hidden sm:block"
             title="Zoom In"
           >
             <ZoomIn className="w-5 h-5" />
           </button>
           <button
             onClick={resetView}
-            className="p-2 hover:bg-gray-100 rounded"
+            className="p-2 hover:bg-gray-100 rounded hidden sm:block"
             title="Reset View"
           >
             <Home className="w-5 h-5" />
           </button>
           <button
             onClick={toggleBorder}
-            className={`p-2 rounded ${project.hasBorder ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-100'}`}
+            className={`p-2 rounded hidden sm:block ${project.hasBorder ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-100'}`}
             title="Toggle Border"
           >
             <Square className="w-5 h-5" />
@@ -709,11 +763,11 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
             <button
               onClick={() => setShowExportMenu(!showExportMenu)}
               disabled={isExporting}
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center gap-2 disabled:opacity-50"
+              className="px-2 sm:px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center gap-1 sm:gap-2 disabled:opacity-50 text-sm"
               title="Export as Image"
             >
-              <Download className="w-5 h-5" />
-              {isExporting ? 'Exporting...' : 'Export'}
+              <Download className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">{isExporting ? 'Exporting...' : 'Export'}</span>
             </button>
             
             {showExportMenu && (
@@ -744,7 +798,7 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
           
           <button
             onClick={onReset}
-            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+            className="px-2 sm:px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm hidden sm:block"
           >
             New Project
           </button>
@@ -753,9 +807,9 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
 
       <Toolbar activeTool={activeTool} onToolChange={setActiveTool} />
 
-      <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar */}
-        <div className="w-72 bg-white border-r flex flex-col overflow-hidden">
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* Sidebar - Desktop */}
+        <div className="hidden lg:flex w-72 bg-white border-r flex-col overflow-hidden">
           <div className="flex border-b">
             <button
               onClick={() => setActiveTab('rooms')}
@@ -790,6 +844,65 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
           </div>
         </div>
 
+        {/* Mobile Palette Overlay */}
+        {showPalette && (
+          <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40 animate-fade-in" onClick={() => setShowPalette(false)}>
+            <div 
+              className="absolute left-0 top-0 bottom-0 w-80 max-w-[85vw] bg-white shadow-xl flex flex-col animate-slide-in-left"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-blue-50 to-white">
+                <h2 className="font-bold text-lg flex items-center gap-2">
+                  <span className="text-2xl">➕</span>
+                  Add Items
+                </h2>
+                <button onClick={() => setShowPalette(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              
+              <div className="flex border-b">
+                <button
+                  onClick={() => setActiveTab('rooms')}
+                  className={`flex-1 px-4 py-3 font-medium ${
+                    activeTab === 'rooms' ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600' : 'text-gray-600'
+                  }`}
+                >
+                  Rooms
+                </button>
+                <button
+                  onClick={() => setActiveTab('elements')}
+                  className={`flex-1 px-4 py-3 font-medium ${
+                    activeTab === 'elements' ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600' : 'text-gray-600'
+                  }`}
+                >
+                  Elements
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-4">
+                {activeTab === 'rooms' ? (
+                  <>
+                    <h2 className="font-bold mb-3">Add Rooms</h2>
+                    <RoomPalette roomTypes={ROOM_TYPES} onAddRoom={(type, color, icon) => {
+                      addRoom(type, color, icon);
+                      setShowPalette(false);
+                    }} />
+                  </>
+                ) : (
+                  <>
+                    <h2 className="font-bold mb-3">Add Elements</h2>
+                    <ElementPalette onAddElement={(element) => {
+                      addElement(element);
+                      setShowPalette(false);
+                    }} />
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Canvas */}
         <div
           ref={canvasRef}
@@ -799,7 +912,66 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
+          onTouchStart={(e) => {
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousedown', {
+              clientX: touch.clientX,
+              clientY: touch.clientY,
+              bubbles: true
+            });
+            e.currentTarget.dispatchEvent(mouseEvent);
+          }}
+          onTouchMove={(e) => {
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousemove', {
+              clientX: touch.clientX,
+              clientY: touch.clientY,
+              bubbles: true
+            });
+            e.currentTarget.dispatchEvent(mouseEvent);
+          }}
+          onTouchEnd={(e) => {
+            const mouseEvent = new MouseEvent('mouseup', {
+              bubbles: true
+            });
+            e.currentTarget.dispatchEvent(mouseEvent);
+          }}
         >
+          {/* Mobile Quick Actions - Enhanced FAB */}
+          <div className="lg:hidden fixed bottom-4 right-4 flex flex-col gap-3 z-30">
+            <button
+              onClick={() => handleZoom(0.25)}
+              className="fab-button p-4 bg-white rounded-full hover:bg-blue-50 active:bg-blue-100 transition-all"
+              title="Zoom In"
+            >
+              <ZoomIn className="w-6 h-6 text-blue-600" />
+            </button>
+            <button
+              onClick={() => handleZoom(-0.25)}
+              className="fab-button p-4 bg-white rounded-full hover:bg-blue-50 active:bg-blue-100 transition-all"
+              title="Zoom Out"
+            >
+              <ZoomOut className="w-6 h-6 text-blue-600" />
+            </button>
+            <button
+              onClick={resetView}
+              className="fab-button p-4 bg-white rounded-full hover:bg-green-50 active:bg-green-100 transition-all"
+              title="Reset View"
+            >
+              <Home className="w-6 h-6 text-green-600" />
+            </button>
+            <button
+              onClick={toggleBorder}
+              className={`fab-button p-4 rounded-full transition-all ${
+                project.hasBorder 
+                  ? 'bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700' 
+                  : 'bg-white text-gray-600 hover:bg-gray-50 active:bg-gray-100'
+              }`}
+              title="Toggle Border"
+            >
+              <Square className="w-6 h-6" />
+            </button>
+          </div>
           <div
             ref={plotRef}
             style={{
@@ -814,8 +986,9 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
               `,
               backgroundSize: `${GRID_SIZE}px ${GRID_SIZE}px`,
               backgroundColor: 'white',
-              margin: '50px',
+              margin: window.innerWidth < 640 ? '20px' : '50px',
               border: project.hasBorder ? `${project.borderThickness}px solid #1f2937` : 'none',
+              touchAction: 'none',
             }}
           >
             {/* Rooms */}
@@ -840,8 +1013,18 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
                   color: '#1f2937',
                   userSelect: 'none',
                   opacity: room.opacity ?? 0.85,
+                  touchAction: 'none',
                 }}
                 onMouseDown={(e) => handleRoomMouseDown(e, room.id, 'drag')}
+                onTouchStart={(e) => {
+                  const touch = e.touches[0];
+                  const mouseEvent = new MouseEvent('mousedown', {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY,
+                    bubbles: true
+                  });
+                  e.currentTarget.dispatchEvent(mouseEvent);
+                }}
               >
                 <div className="text-3xl mb-1">{room.icon}</div>
                 <div className="text-center">
@@ -862,16 +1045,27 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
                         key={corner}
                         style={{
                           position: 'absolute',
-                          width: '12px',
-                          height: '12px',
+                          width: window.innerWidth < 640 ? '20px' : '12px',
+                          height: window.innerWidth < 640 ? '20px' : '12px',
                           backgroundColor: '#2563eb',
                           border: '2px solid white',
                           borderRadius: '50%',
                           cursor: `${corner}-resize`,
-                          ...(corner.includes('n') ? { top: '-6px' } : { bottom: '-6px' }),
-                          ...(corner.includes('w') ? { left: '-6px' } : { right: '-6px' }),
+                          ...(corner.includes('n') ? { top: window.innerWidth < 640 ? '-10px' : '-6px' } : { bottom: window.innerWidth < 640 ? '-10px' : '-6px' }),
+                          ...(corner.includes('w') ? { left: window.innerWidth < 640 ? '-10px' : '-6px' } : { right: window.innerWidth < 640 ? '-10px' : '-6px' }),
+                          touchAction: 'none',
                         }}
                         onMouseDown={(e) => handleRoomMouseDown(e, room.id, 'resize', corner)}
+                        onTouchStart={(e) => {
+                          e.preventDefault();
+                          const touch = e.touches[0];
+                          const mouseEvent = new MouseEvent('mousedown', {
+                            clientX: touch.clientX,
+                            clientY: touch.clientY,
+                            bubbles: true
+                          });
+                          e.currentTarget.dispatchEvent(mouseEvent);
+                        }}
                       />
                     ))}
                   </>
@@ -900,8 +1094,18 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
                   transform: `rotate(${element.rotation}deg)`,
                   transformOrigin: 'top left',
                   opacity: element.opacity ?? 1,
+                  touchAction: 'none',
                 }}
                 onMouseDown={(e) => handleElementMouseDown(e, element.id, 'drag')}
+                onTouchStart={(e) => {
+                  const touch = e.touches[0];
+                  const mouseEvent = new MouseEvent('mousedown', {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY,
+                    bubbles: true
+                  });
+                  e.currentTarget.dispatchEvent(mouseEvent);
+                }}
               >
                 {element.type === 'stairs' ? (
                   <StairsElement 
@@ -931,16 +1135,27 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
                     <div
                       style={{
                         position: 'absolute',
-                        width: '10px',
-                        height: '10px',
+                        width: window.innerWidth < 640 ? '20px' : '10px',
+                        height: window.innerWidth < 640 ? '20px' : '10px',
                         backgroundColor: '#2563eb',
                         border: '2px solid white',
                         borderRadius: '50%',
                         cursor: 'se-resize',
-                        bottom: '-5px',
-                        right: '-5px',
+                        bottom: window.innerWidth < 640 ? '-10px' : '-5px',
+                        right: window.innerWidth < 640 ? '-10px' : '-5px',
+                        touchAction: 'none',
                       }}
                       onMouseDown={(e) => handleElementMouseDown(e, element.id, 'resize', 'se')}
+                      onTouchStart={(e) => {
+                        e.preventDefault();
+                        const touch = e.touches[0];
+                        const mouseEvent = new MouseEvent('mousedown', {
+                          clientX: touch.clientX,
+                          clientY: touch.clientY,
+                          bubbles: true
+                        });
+                        e.currentTarget.dispatchEvent(mouseEvent);
+                      }}
                     />
                   </>
                 )}
@@ -949,19 +1164,56 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
           </div>
         </div>
 
-        {/* Properties Panel */}
-        <PropertiesPanel
-          selectedRoom={selectedRoom ? project.rooms.find(r => r.id === selectedRoom) || null : null}
-          selectedElement={selectedElement ? project.elements.find(e => e.id === selectedElement) || null : null}
-          onUpdateRoom={updateRoom}
-          onUpdateElement={updateElement}
-          onDeleteRoom={() => selectedRoom && deleteRoom(selectedRoom)}
-          onDeleteElement={() => selectedElement && deleteElement(selectedElement)}
-          onRotateElement={() => selectedElement && rotateElement(selectedElement)}
-          onDuplicateRoom={() => selectedRoom && duplicateRoom(selectedRoom)}
-          onDuplicateElement={() => selectedElement && duplicateElement(selectedElement)}
-          calculateArea={calculateArea}
-        />
+        {/* Properties Panel - Desktop */}
+        <div className="hidden lg:block">
+          <PropertiesPanel
+            selectedRoom={selectedRoom ? project.rooms.find(r => r.id === selectedRoom) || null : null}
+            selectedElement={selectedElement ? project.elements.find(e => e.id === selectedElement) || null : null}
+            onUpdateRoom={updateRoom}
+            onUpdateElement={updateElement}
+            onDeleteRoom={() => selectedRoom && deleteRoom(selectedRoom)}
+            onDeleteElement={() => selectedElement && deleteElement(selectedElement)}
+            onRotateElement={() => selectedElement && rotateElement(selectedElement)}
+            onDuplicateRoom={() => selectedRoom && duplicateRoom(selectedRoom)}
+            onDuplicateElement={() => selectedElement && duplicateElement(selectedElement)}
+            calculateArea={calculateArea}
+          />
+        </div>
+
+        {/* Mobile Properties Overlay */}
+        {showProperties && (
+          <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40" onClick={() => setShowProperties(false)}>
+            <div 
+              className="absolute right-0 top-0 bottom-0 w-80 max-w-[85vw] bg-white shadow-xl overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between p-4 border-b sticky top-0 bg-white z-10">
+                <h2 className="font-bold text-lg">Properties</h2>
+                <button onClick={() => setShowProperties(false)} className="p-2 hover:bg-gray-100 rounded">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <PropertiesPanel
+                selectedRoom={selectedRoom ? project.rooms.find(r => r.id === selectedRoom) || null : null}
+                selectedElement={selectedElement ? project.elements.find(e => e.id === selectedElement) || null : null}
+                onUpdateRoom={updateRoom}
+                onUpdateElement={updateElement}
+                onDeleteRoom={() => {
+                  selectedRoom && deleteRoom(selectedRoom);
+                  setShowProperties(false);
+                }}
+                onDeleteElement={() => {
+                  selectedElement && deleteElement(selectedElement);
+                  setShowProperties(false);
+                }}
+                onRotateElement={() => selectedElement && rotateElement(selectedElement)}
+                onDuplicateRoom={() => selectedRoom && duplicateRoom(selectedRoom)}
+                onDuplicateElement={() => selectedElement && duplicateElement(selectedElement)}
+                calculateArea={calculateArea}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
