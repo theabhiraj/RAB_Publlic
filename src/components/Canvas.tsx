@@ -103,14 +103,38 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
   const constrainToBounds = (x: number, y: number, width: number, height: number, rotation: number = 0) => {
     const bounds = getPlotBounds();
     
-    // For 90° or 270° rotation, swap width and height for boundary checking
-    const isRotated90or270 = rotation === 90 || rotation === 270;
-    const effectiveWidth = isRotated90or270 ? height : width;
-    const effectiveHeight = isRotated90or270 ? width : height;
+    // Calculate the actual visual bounds after rotation
+    // Rotation happens around center, so we need to account for the offset
+    let minX = 0;
+    let minY = 0;
+    let maxX = bounds.maxX - width;
+    let maxY = bounds.maxY - height;
+    
+    if (rotation === 90) {
+      // 90° rotation: element rotates clockwise
+      // Visual bounds: width becomes height, height becomes width
+      minX = 0;
+      minY = width; // Need space for the rotated width
+      maxX = bounds.maxX - height;
+      maxY = bounds.maxY;
+    } else if (rotation === 270) {
+      // 270° rotation: element rotates counter-clockwise
+      // Visual bounds: width becomes height, height becomes width
+      minX = height; // Need space for the rotated height
+      minY = 0;
+      maxX = bounds.maxX;
+      maxY = bounds.maxY - width;
+    } else if (rotation === 180) {
+      // 180° rotation: dimensions stay same but position offset
+      minX = width;
+      minY = height;
+      maxX = bounds.maxX;
+      maxY = bounds.maxY;
+    }
     
     return {
-      x: Math.max(0, Math.min(x, bounds.maxX - effectiveWidth)),
-      y: Math.max(0, Math.min(y, bounds.maxY - effectiveHeight))
+      x: Math.max(minX, Math.min(x, maxX)),
+      y: Math.max(minY, Math.min(y, maxY))
     };
   };
 
