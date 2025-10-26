@@ -103,38 +103,47 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
   const constrainToBounds = (x: number, y: number, width: number, height: number, rotation: number = 0) => {
     const bounds = getPlotBounds();
     
-    // Calculate the actual visual bounds after rotation
-    // Rotation happens around center, so we need to account for the offset
-    let minX = 0;
-    let minY = 0;
-    let maxX = bounds.maxX - width;
-    let maxY = bounds.maxY - height;
+    // Calculate the bounding box after rotation from top-left origin
+    let minX = x;
+    let minY = y;
+    let maxX = x;
+    let maxY = y;
     
-    if (rotation === 90) {
-      // 90° rotation: element rotates clockwise
-      // Visual bounds: width becomes height, height becomes width
-      minX = 0;
-      minY = width; // Need space for the rotated width
-      maxX = bounds.maxX - height;
-      maxY = bounds.maxY;
-    } else if (rotation === 270) {
-      // 270° rotation: element rotates counter-clockwise
-      // Visual bounds: width becomes height, height becomes width
-      minX = height; // Need space for the rotated height
-      minY = 0;
-      maxX = bounds.maxX;
-      maxY = bounds.maxY - width;
-    } else if (rotation === 180) {
-      // 180° rotation: dimensions stay same but position offset
-      minX = width;
-      minY = height;
-      maxX = bounds.maxX;
-      maxY = bounds.maxY;
-    }
+    // Calculate the four corners after rotation
+    const rad = (rotation * Math.PI) / 180;
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+    
+    // Four corners of the rectangle before rotation (relative to top-left)
+    const corners = [
+      { x: 0, y: 0 },
+      { x: width, y: 0 },
+      { x: 0, y: height },
+      { x: width, y: height }
+    ];
+    
+    // Rotate each corner and find the bounding box
+    corners.forEach(corner => {
+      const rotatedX = corner.x * cos - corner.y * sin;
+      const rotatedY = corner.x * sin + corner.y * cos;
+      minX = Math.min(minX, x + rotatedX);
+      minY = Math.min(minY, y + rotatedY);
+      maxX = Math.max(maxX, x + rotatedX);
+      maxY = Math.max(maxY, y + rotatedY);
+    });
+    
+    // Calculate how much we need to adjust to keep within bounds
+    let adjustX = 0;
+    let adjustY = 0;
+    
+    if (minX < 0) adjustX = -minX;
+    if (minY < 0) adjustY = -minY;
+    if (maxX > bounds.maxX) adjustX = bounds.maxX - maxX;
+    if (maxY > bounds.maxY) adjustY = bounds.maxY - maxY;
     
     return {
-      x: Math.max(minX, Math.min(x, maxX)),
-      y: Math.max(minY, Math.min(y, maxY))
+      x: x + adjustX,
+      y: y + adjustY
     };
   };
 
@@ -283,16 +292,18 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
       wrapper.style.backgroundColor = '#ffffff';
       wrapper.style.fontFamily = 'Arial, sans-serif';
       
-      // Add title with house icon
+      // Add title
       const title = document.createElement('div');
       title.style.marginBottom = '20px';
       title.style.textAlign = 'center';
       title.innerHTML = `
-        <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 10px;">
+        <div style="margin-bottom: 10px;">
+          <!--
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
             <polyline points="9 22 9 12 15 12 15 22"></polyline>
           </svg>
+          -->
           <h2 style="margin: 0; font-size: 28px; color: #1f2937; font-weight: 700;">RAB's 🏠</h2>
         </div>
         <p style="margin: 0; font-size: 14px; color: #6b7280;">
@@ -303,12 +314,18 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
       `;
       wrapper.appendChild(title);
       
+      // Create a container for centering the plot
+      const plotContainer = document.createElement('div');
+      plotContainer.style.display = 'flex';
+      plotContainer.style.justifyContent = 'center';
+      plotContainer.style.alignItems = 'center';
+      
       // Clone the plot
       const plotClone = plotRef.current.cloneNode(true) as HTMLElement;
-      plotClone.style.margin = '0 auto';
       plotClone.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
       plotClone.style.border = '2px solid #e5e7eb';
-      wrapper.appendChild(plotClone);
+      plotContainer.appendChild(plotClone);
+      wrapper.appendChild(plotContainer);
       
       // Add footer
       const footer = document.createElement('div');
@@ -346,16 +363,18 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
       wrapper.style.backgroundColor = '#ffffff';
       wrapper.style.fontFamily = 'Arial, sans-serif';
       
-      // Add title with house icon
+      // Add title
       const title = document.createElement('div');
       title.style.marginBottom = '20px';
       title.style.textAlign = 'center';
       title.innerHTML = `
-        <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 10px;">
+        <div style="margin-bottom: 10px;">
+          <!--
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
             <polyline points="9 22 9 12 15 12 15 22"></polyline>
           </svg>
+          -->
           <h2 style="margin: 0; font-size: 28px; color: #1f2937; font-weight: 700;">RAB's 🏠</h2>
         </div>
         <p style="margin: 0; font-size: 14px; color: #6b7280;">
@@ -366,12 +385,18 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
       `;
       wrapper.appendChild(title);
       
+      // Create a container for centering the plot
+      const plotContainer = document.createElement('div');
+      plotContainer.style.display = 'flex';
+      plotContainer.style.justifyContent = 'center';
+      plotContainer.style.alignItems = 'center';
+      
       // Clone the plot
       const plotClone = plotRef.current.cloneNode(true) as HTMLElement;
-      plotClone.style.margin = '0 auto';
       plotClone.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
       plotClone.style.border = '2px solid #e5e7eb';
-      wrapper.appendChild(plotClone);
+      plotContainer.appendChild(plotClone);
+      wrapper.appendChild(plotContainer);
       
       // Add footer
       const footer = document.createElement('div');
@@ -497,8 +522,14 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
         const element = project.elements.find(el => el.id === dragging.id);
         if (!element) return;
 
-        const newX = snapToGrid(mouseX - dragging.offsetX);
-        const newY = snapToGrid(mouseY - dragging.offsetY);
+        let newX = mouseX - dragging.offsetX;
+        let newY = mouseY - dragging.offsetY;
+        
+        // Snap to grid
+        newX = snapToGrid(newX);
+        newY = snapToGrid(newY);
+        
+        // Apply boundary constraints with rotation
         const constrained = constrainToBounds(newX, newY, element.width, element.height, element.rotation);
 
         onUpdate({
@@ -554,14 +585,14 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
 
         // Account for rotation when calculating max bounds
         const isRotated90or270 = element.rotation === 90 || element.rotation === 270;
-        const maxWidthFromX = isRotated90or270 ? bounds.maxY - element.y : bounds.maxX - element.x;
-        const maxHeightFromY = isRotated90or270 ? bounds.maxX - element.x : bounds.maxY - element.y;
-
+        
         if (resizing.corner.includes('e')) {
-          newWidth = snapToGrid(Math.max(GRID_SIZE, Math.min(mouseX - element.x, maxWidthFromX)));
+          const maxWidth = isRotated90or270 ? bounds.maxY - element.y : bounds.maxX - element.x;
+          newWidth = snapToGrid(Math.max(GRID_SIZE, Math.min(mouseX - element.x, maxWidth)));
         }
         if (resizing.corner.includes('s')) {
-          newHeight = snapToGrid(Math.max(GRID_SIZE, Math.min(mouseY - element.y, maxHeightFromY)));
+          const maxHeight = isRotated90or270 ? bounds.maxX - element.x : bounds.maxY - element.y;
+          newHeight = snapToGrid(Math.max(GRID_SIZE, Math.min(mouseY - element.y, maxHeight)));
         }
 
         onUpdate({
@@ -867,7 +898,7 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
                   userSelect: 'none',
                   backgroundColor: element.type === 'door' ? 'transparent' : element.type === 'window' ? 'transparent' : element.type === 'stairs' ? 'transparent' : 'transparent',
                   transform: `rotate(${element.rotation}deg)`,
-                  transformOrigin: 'center',
+                  transformOrigin: 'top left',
                   opacity: element.opacity ?? 1,
                 }}
                 onMouseDown={(e) => handleElementMouseDown(e, element.id, 'drag')}
