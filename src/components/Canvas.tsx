@@ -100,11 +100,17 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
     };
   };
 
-  const constrainToBounds = (x: number, y: number, width: number, height: number) => {
+  const constrainToBounds = (x: number, y: number, width: number, height: number, rotation: number = 0) => {
     const bounds = getPlotBounds();
+    
+    // For 90° or 270° rotation, swap width and height for boundary checking
+    const isRotated90or270 = rotation === 90 || rotation === 270;
+    const effectiveWidth = isRotated90or270 ? height : width;
+    const effectiveHeight = isRotated90or270 ? width : height;
+    
     return {
-      x: Math.max(0, Math.min(x, bounds.maxX - width)),
-      y: Math.max(0, Math.min(y, bounds.maxY - height))
+      x: Math.max(0, Math.min(x, bounds.maxX - effectiveWidth)),
+      y: Math.max(0, Math.min(y, bounds.maxY - effectiveHeight))
     };
   };
 
@@ -179,7 +185,13 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
   };
 
   const updateElement = (updatedElement: Element) => {
-    const constrained = constrainToBounds(updatedElement.x, updatedElement.y, updatedElement.width, updatedElement.height);
+    const constrained = constrainToBounds(
+      updatedElement.x, 
+      updatedElement.y, 
+      updatedElement.width, 
+      updatedElement.height,
+      updatedElement.rotation
+    );
     onUpdate({
       ...project,
       elements: project.elements.map(e => 
@@ -223,7 +235,7 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
     const offset = GRID_SIZE * 2; // 2 grid units offset
     const newX = element.x + offset;
     const newY = element.y + offset;
-    const constrained = constrainToBounds(newX, newY, element.width, element.height);
+    const constrained = constrainToBounds(newX, newY, element.width, element.height, element.rotation);
 
     const duplicatedElement: Element = {
       ...element,
@@ -463,7 +475,7 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
 
         const newX = snapToGrid(mouseX - dragging.offsetX);
         const newY = snapToGrid(mouseY - dragging.offsetY);
-        const constrained = constrainToBounds(newX, newY, element.width, element.height);
+        const constrained = constrainToBounds(newX, newY, element.width, element.height, element.rotation);
 
         onUpdate({
           ...project,
