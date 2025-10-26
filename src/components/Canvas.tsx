@@ -9,6 +9,7 @@ import StairsElement from './StairsElement';
 import DoorElement from './DoorElement';
 import WindowElement from './WindowElement';
 import Toast, { ToastType } from './Toast';
+import MobileTutorial from './MobileTutorial';
 import { exportCanvasAsImage, exportCanvasAsJPG } from '../utils/exportImage';
 
 interface CanvasProps {
@@ -47,8 +48,8 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
   const [showPalette, setShowPalette] = useState(false);
   const [showProperties, setShowProperties] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+  const [showTutorial, setShowTutorial] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
   const plotRef = useRef<HTMLDivElement>(null);
 
@@ -56,15 +57,26 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
     setToast({ message, type });
   };
 
-  // Detect mobile device
+  // Detect mobile device and show tutorial for first-time users
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024);
+      const mobile = window.innerWidth < 1024;
+      setIsMobile(mobile);
+      
+      // Show tutorial only on mobile for first-time users
+      if (mobile && !localStorage.getItem('tutorialCompleted')) {
+        setShowTutorial(true);
+      }
     };
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  const handleTutorialClose = () => {
+    setShowTutorial(false);
+    localStorage.setItem('tutorialCompleted', 'true');
+  };
 
   const snapToGrid = (value: number) => Math.round(value / GRID_SIZE) * GRID_SIZE;
 
@@ -313,6 +325,7 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
     if (!plotRef.current) return;
     setIsExporting(true);
     setShowExportMenu(false);
+    if (isMobile) showToast('Preparing export...', 'info');
     try {
       // Create a wrapper with border and title
       const wrapper = document.createElement('div');
@@ -373,8 +386,13 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
       
       // Clean up
       document.body.removeChild(wrapper);
+      if (isMobile) showToast('✅ PNG exported successfully!', 'success');
     } catch (error) {
-      alert('Failed to export image. Please try again.');
+      if (isMobile) {
+        showToast('❌ Export failed. Please try again.', 'error');
+      } else {
+        alert('Failed to export image. Please try again.');
+      }
     } finally {
       setIsExporting(false);
     }
@@ -384,6 +402,7 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
     if (!plotRef.current) return;
     setIsExporting(true);
     setShowExportMenu(false);
+    if (isMobile) showToast('Preparing export...', 'info');
     try {
       // Create a wrapper with border and title
       const wrapper = document.createElement('div');
@@ -444,8 +463,13 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
       
       // Clean up
       document.body.removeChild(wrapper);
+      if (isMobile) showToast('✅ JPG exported successfully!', 'success');
     } catch (error) {
-      alert('Failed to export image. Please try again.');
+      if (isMobile) {
+        showToast('❌ Export failed. Please try again.', 'error');
+      } else {
+        alert('Failed to export image. Please try again.');
+      }
     } finally {
       setIsExporting(false);
     }
@@ -713,8 +737,8 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
               setShowPalette(!showPalette);
               setShowProperties(false);
             }}
-            className="lg:hidden p-2 hover:bg-gray-100 rounded"
-            title="Toggle Palette"
+            className="lg:hidden p-2 hover:bg-gray-100 rounded transition-colors"
+            title="Add Items"
           >
             <Menu className="w-5 h-5" />
           </button>
@@ -725,8 +749,8 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
               setShowProperties(!showProperties);
               setShowPalette(false);
             }}
-            className="lg:hidden p-2 hover:bg-gray-100 rounded"
-            title="Toggle Properties"
+            className="lg:hidden p-2 hover:bg-gray-100 rounded transition-colors"
+            title="Properties"
           >
             <Settings className="w-5 h-5" />
           </button>
@@ -1214,6 +1238,18 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
             </div>
           </div>
         )}
+
+        {/* Toast Notifications */}
+        {toast && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
+          />
+        )}
+
+        {/* Mobile Tutorial */}
+        {showTutorial && <MobileTutorial onClose={handleTutorialClose} />}
       </div>
     </div>
   );
