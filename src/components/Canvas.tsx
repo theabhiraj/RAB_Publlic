@@ -528,11 +528,16 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
         let newWidth = element.width;
         let newHeight = element.height;
 
+        // Account for rotation when calculating max bounds
+        const isRotated90or270 = element.rotation === 90 || element.rotation === 270;
+        const maxWidthFromX = isRotated90or270 ? bounds.maxY - element.y : bounds.maxX - element.x;
+        const maxHeightFromY = isRotated90or270 ? bounds.maxX - element.x : bounds.maxY - element.y;
+
         if (resizing.corner.includes('e')) {
-          newWidth = snapToGrid(Math.max(GRID_SIZE, Math.min(mouseX - element.x, bounds.maxX - element.x)));
+          newWidth = snapToGrid(Math.max(GRID_SIZE, Math.min(mouseX - element.x, maxWidthFromX)));
         }
         if (resizing.corner.includes('s')) {
-          newHeight = snapToGrid(Math.max(GRID_SIZE, Math.min(mouseY - element.y, bounds.maxY - element.y)));
+          newHeight = snapToGrid(Math.max(GRID_SIZE, Math.min(mouseY - element.y, maxHeightFromY)));
         }
 
         onUpdate({
