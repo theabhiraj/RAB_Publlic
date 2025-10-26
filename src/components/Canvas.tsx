@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { ZoomIn, ZoomOut, Home, Square, Download, Menu, X } from 'lucide-react';
+import { ZoomIn, ZoomOut, Home, Download, Menu, X } from 'lucide-react';
 import { Project, Room, Element } from '../types';
 import RoomPalette from './RoomPalette';
 import ElementPalette from './ElementPalette';
@@ -272,9 +272,7 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
     });
   };
 
-  const toggleBorder = () => {
-    onUpdate({ ...project, hasBorder: !project.hasBorder });
-  };
+
 
   const duplicateRoom = (roomId: string) => {
     const room = project.rooms.find(r => r.id === roomId);
@@ -810,13 +808,6 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
           >
             <Home className="w-5 h-5" />
           </button>
-          <button
-            onClick={toggleBorder}
-            className={`p-2 rounded hidden sm:block ${project.hasBorder ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-100'}`}
-            title="Toggle Border"
-          >
-            <Square className="w-5 h-5" />
-          </button>
           <div className="relative export-menu-container">
             <button
               onClick={() => setShowExportMenu(!showExportMenu)}
@@ -865,7 +856,7 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
 
       <Toolbar activeTool={activeTool} onToolChange={setActiveTool} />
 
-      <div className="flex-1 flex overflow-hidden relative">
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
         {/* Sidebar - Desktop Only */}
         <div className="hidden lg:flex w-72 bg-white border-r flex-col overflow-hidden">
           <div className="flex border-b">
@@ -937,7 +928,7 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
           }}
         >
           {/* Mobile Quick Actions - Compact FAB */}
-          <div className="lg:hidden fixed bottom-4 left-4 flex gap-2 z-30">
+          <div className="lg:hidden fixed bottom-[calc(30%+1rem)] left-4 flex gap-2 z-30">
             <button
               onClick={() => handleZoom(0.25)}
               className="fab-button p-3 bg-white rounded-full hover:bg-blue-50 active:bg-blue-100 transition-all shadow-lg"
@@ -958,17 +949,6 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
               title="Reset View"
             >
               <Home className="w-5 h-5 text-green-600" />
-            </button>
-            <button
-              onClick={toggleBorder}
-              className={`fab-button p-3 rounded-full transition-all shadow-lg ${
-                project.hasBorder 
-                  ? 'bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700' 
-                  : 'bg-white text-gray-600 hover:bg-gray-50 active:bg-gray-100'
-              }`}
-              title="Toggle Border"
-            >
-              <Square className="w-5 h-5" />
             </button>
           </div>
           <div
@@ -1163,8 +1143,8 @@ export default function Canvas({ project, onUpdate, onReset }: CanvasProps) {
           </div>
         </div>
 
-        {/* Properties Panel - Always Visible (25% on mobile, fixed width on desktop) */}
-        <div className="w-1/4 min-w-[200px] max-w-[320px] lg:w-80 bg-white border-l overflow-y-auto">
+        {/* Properties Panel - Bottom on mobile (30%), Right on desktop */}
+        <div className="h-[30%] lg:h-auto lg:w-80 bg-white border-t lg:border-t-0 lg:border-l overflow-y-auto">
           <PropertiesPanel
             selectedRoom={selectedRoom ? project.rooms.find(r => r.id === selectedRoom) || null : null}
             selectedElement={selectedElement ? project.elements.find(e => e.id === selectedElement) || null : null}

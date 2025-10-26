@@ -40,7 +40,7 @@ export default function PropertiesPanel({
 
   if (selectedRoom) {
     return (
-      <div className="w-full bg-white overflow-y-auto">
+      <div className="w-full bg-white overflow-y-auto lg:overflow-y-auto overflow-x-hidden">
         <div className="p-2 lg:p-4 border-b bg-blue-50">
           <h2 className="font-bold text-sm lg:text-lg flex items-center gap-1 lg:gap-2">
             <span className="text-lg lg:text-2xl">{selectedRoom.icon}</span>
@@ -49,9 +49,9 @@ export default function PropertiesPanel({
           </h2>
         </div>
 
-        <div className="p-2 lg:p-4 space-y-2 lg:space-y-4">
+        <div className="p-2 lg:p-4 flex lg:flex-col gap-3 lg:gap-4 overflow-x-auto lg:overflow-x-visible flex-nowrap lg:flex-wrap">
           {/* Room Type */}
-          <div>
+          <div className="min-w-[140px] lg:min-w-0 flex-shrink-0">
             <label className="block text-xs lg:text-sm font-medium text-gray-700 mb-1">
               Type
             </label>
@@ -118,7 +118,7 @@ export default function PropertiesPanel({
           </div>
 
           {/* Dimensions in Feet - Editable */}
-          <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+          <div className="min-w-[180px] lg:min-w-0 flex-shrink-0 bg-blue-50 p-3 rounded-lg border border-blue-200">
             <div className="text-sm font-medium text-gray-700 mb-2">Dimensions (Feet)</div>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -155,10 +155,10 @@ export default function PropertiesPanel({
           </div>
 
           {/* Area Display */}
-          <div className="bg-gray-50 p-3 rounded-lg">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">Area</span>
-              <span className="text-lg font-bold text-blue-600">
+          <div className="min-w-[140px] lg:min-w-0 flex-shrink-0 bg-gray-50 p-3 rounded-lg">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center lg:justify-between gap-1">
+              <span className="text-xs lg:text-sm font-medium text-gray-700">Area</span>
+              <span className="text-base lg:text-lg font-bold text-blue-600">
                 {calculateArea(selectedRoom)} sq ft
               </span>
             </div>
@@ -241,22 +241,22 @@ export default function PropertiesPanel({
           </div>
 
           {/* Actions */}
-          <div className="pt-2 lg:pt-4 border-t space-y-1.5 lg:space-y-2">
+          <div className="min-w-[140px] lg:min-w-0 flex-shrink-0 flex lg:flex-col gap-2 lg:pt-4 lg:border-t">
             <button
               onClick={onDuplicateRoom}
-              className="w-full px-2 lg:px-4 py-2 lg:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-1 lg:gap-2 font-medium text-sm"
+              className="flex-1 lg:w-full px-2 lg:px-4 py-2 lg:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-1 lg:gap-2 font-medium text-sm whitespace-nowrap"
             >
               <Copy className="w-4 h-4 lg:w-5 lg:h-5" />
               <span className="hidden lg:inline">Duplicate Room</span>
-              <span className="lg:hidden">Duplicate</span>
+              <span className="lg:hidden">Dup</span>
             </button>
             <button
               onClick={onDeleteRoom}
-              className="w-full px-2 lg:px-4 py-2 lg:py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center justify-center gap-1 lg:gap-2 font-medium text-sm"
+              className="flex-1 lg:w-full px-2 lg:px-4 py-2 lg:py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center justify-center gap-1 lg:gap-2 font-medium text-sm whitespace-nowrap"
             >
               <Trash2 className="w-4 h-4 lg:w-5 lg:h-5" />
               <span className="hidden lg:inline">Delete Room</span>
-              <span className="lg:hidden">Delete</span>
+              <span className="lg:hidden">Del</span>
             </button>
           </div>
         </div>
@@ -266,7 +266,7 @@ export default function PropertiesPanel({
 
   if (selectedElement) {
     return (
-      <div className="w-full bg-white overflow-y-auto">
+      <div className="w-full bg-white overflow-y-auto lg:overflow-y-auto overflow-x-hidden">
         <div className="p-2 lg:p-4 border-b bg-purple-50">
           <h2 className="font-bold text-sm lg:text-lg flex items-center gap-1 lg:gap-2">
             <span className="text-lg lg:text-2xl">{selectedElement.icon}</span>
@@ -275,7 +275,7 @@ export default function PropertiesPanel({
           </h2>
         </div>
 
-        <div className="p-2 lg:p-4 space-y-2 lg:space-y-4">
+        <div className="p-2 lg:p-4 flex lg:flex-col gap-3 lg:gap-4 overflow-x-auto lg:overflow-x-visible flex-nowrap lg:flex-wrap">
           {/* Element Type */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
